@@ -1,10 +1,11 @@
 #include <iostream>
 using namespace std;
+#include <string>
 
 struct Check
 {
     int checkNum = 1;
-    string checkMemo = "";
+    string checkMemo = {" "};
     float checkAmount = 0.0;
 };
 
@@ -17,10 +18,11 @@ public:
 
     Check checks[N];
 
-    void deposit(float amount){balance=balance+amount; numOfChecks++;}
+    float deposit(float amount);
     void DisplayChecks();
 
     bool writeCheck(float amount); //basically a setter fcn
+
 private:
     float balance; //keep track of balance
     float lastDeposit; //last deposited amt
@@ -28,38 +30,85 @@ private:
     int checkLimit = N;
 };
 
-bool CheckBook::writeCheck(float amount)
+float CheckBook::deposit(float amount)
 {
-    //ask
-    cout<<"Check amount? "; cin>>Check.checkAmount;
-    cout<<"\nCheck Memo? "; cin>>Check.checkMemo;
-    //set checknum with numofchecks from checkbook
-    //update balance
-    balance = balance + Check.checkAmount;
-    //update numofchecks
-    if(balance>amount)
-    {
-        return true;
-    }
-    else
-    {
-        return false;
-    }
+    balance=balance+amount;
+    lastDeposit = amount;
+    return balance;
 }
 
 void CheckBook::DisplayChecks()
 {
-    for(int i=0; i<numOfChecks; i++)
+    for(int i=numOfChecks; i>0; i--)
     {
-        cout<<Check.checkNum;
+       cout<<"Checks in order:";
+       cout<<checks[i].checkNum<<"   "<<checks[i].checkMemo<<"   $"<<checks[i].checkAmount<<endl;
     }
 }
 
+bool CheckBook::writeCheck(float amount)
+{
+    if(balance>=amount)
+    {
+        //update numofchecks
+        numOfChecks++;
+        //add amount info to check
+        checks[numOfChecks].checkAmount = amount;
+        //ask
+        cout<<"\nCheck Memo: ";
+        cin.ignore();
+        getline(cin,checks[numOfChecks].checkMemo);
+        //cin>>checks[numOfChecks].checkMemo;
+
+        //set checknum
+        checks[numOfChecks].checkNum = numOfChecks;
+        //update balance
+        balance = balance - amount;
+        return true;
+    }
+    else
+    {
+        cout<<"Cannot write check for that amount. Try a lower amount next time."<<endl;
+        return false;
+    }
+}
+
+
+
 int main()
 {
-    cout << "Hello world!" << endl;
-    return 0;
-    CheckBook check1, check2(2);
+    float localAmount = 0;
+    char userOption;
+    bool exitBank = false;
 
-    //CheckBook check3(deposit());
+    CheckBook Balance, Balance2(500);
+
+    cout<<"Give initial balance: "; cin>>localAmount;
+    Balance.deposit(localAmount);
+
+    while(exitBank == false)
+    {
+        cout<<"\nHit 'd' to deposit, 's' to display all checks, 'w' to write check, and 'e' to exit."<<endl;
+        cin>>userOption;
+        if(userOption == 'd')
+        {
+            cout<<"\nGive deposit amount: "; cin>>localAmount;
+            Balance.deposit(localAmount);
+        }
+        if(userOption == 's')
+        {
+            Balance.DisplayChecks();
+        }
+        if(userOption == 'w')
+        {
+            cout<<"Writing check... "<<endl;
+            cout<<"How much is the check for? "; cin>>localAmount;
+            Balance.writeCheck(localAmount);
+        }
+        if(userOption == 'e')
+        {
+            exitBank = true;
+        }
+    }
+    return 0;
 }
