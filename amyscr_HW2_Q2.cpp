@@ -86,7 +86,6 @@ private:
 CheckBook::operator =(Check &obj)
 {
     obj.checkAmount=balance; //change later
-    return ;
 }
 void CheckBook::deposit(float amount)
 {
