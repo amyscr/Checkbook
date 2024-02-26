@@ -5,7 +5,7 @@
 ** Date Last Modified : February 23, 2024
 ** Usage : Digital Checkbook
 **
-** Problem:
+** Problem: Create checkbook and checkbook test, a way to update members
 
 Accept the following information from the user (keyboard):
 - Hw1, hw2 and hw3 (out of 100)
@@ -16,8 +16,7 @@ Hws --> 30% (10% each)
 Midterm --> 30%
 Final Exam --> 40%
 *************************************************************************/
-
-
+#include <string>
 #include <iostream>
 using namespace std;
 
@@ -26,19 +25,18 @@ struct Check
     int checkNum;
     string checkMemo;
     float checkAmount;
+    bool operator >(const Check &obj);
 };
-
-bool operator <(Check obj, float variable)
+//returns true if this instance is bigger
+bool Check::operator >(const Check &obj)
 {
-    if(obj.checkAmount<variable)
-    {
-        return true;
-    }
+    return checkAmount>obj.checkNum;
 }
 
-ostream& operator <<(ostream &out, Check const &phrase)
+ostream& operator <<(ostream &out, Check &phrase)
 {
-    return out << phrase.checkMemo;
+    out<<phrase.checkAmount<<"   "<<phrase.checkMemo<<"   "<<phrase.checkNum<<endl;
+    return out;
 }
 
 /*************************/
@@ -48,108 +46,146 @@ class CheckBook
 public:
     //constructors
     CheckBook(): balance(0), numOfChecks(0), checkBookSize(4){} //initialize pointer
-    CheckBook(float initBalance): balance(initBalance), numOfChecks(0), checkBookSize(4){} //initialize pointer
+    CheckBook(float initBalance): balance(initBalance), numOfChecks(0), checkBookSize(4){balance=initBalance; chkPtr = new Check[checkBookSize];}
+    //copy constructor
+    CheckBook(const CheckBook &obj){balance=obj.balance; lastDeposit=obj.lastDeposit; numOfChecks=obj.numOfChecks; checkBookSize=obj.checkBookSize; chkPtr=obj.chkPtr;}
+    //destructor
+    ~CheckBook(){delete[] chkPtr;} //initialize pointer
 
-    //getters and setters
+    //getters
     float const getBalance (){return balance;}
-    void setBalance(float amount){balance = balance + amount;}
-
     float const getLastDeposit(){return lastDeposit;}
-    void setLastDeposit(float currentDeposit){lastDeposit = currentDeposit;}
-
     int const getNumOfChecks(){return numOfChecks;}
-    void setNumOfChecks(){numOfChecks++;}
-
     int const getCheckBookSize(){return checkBookSize;}
-    void setCheckBookSize(){/*double size,*/}
+
+    //setters
+    void setBalance(float amount){balance = balance + amount;}
+    void setLastDeposit(float currentDeposit){lastDeposit = currentDeposit;}
+    void setNumOfChecks(){numOfChecks++;}
+    void setCheckBookSize(){checkBookSize*=2;}
 
     //other fcns
     void deposit(float amount);//adds desired amount to current balance
     bool writeCheck(Check c_amount);
-    void displayChecks();
+    void const displayChecks();
 
     //overloaded assignment operators
-    operator =(Check &obj){}
-    operator<<(Check &obj){}
-
-    //copy constructor
-    CheckBook(const CheckBook &obj);
-
-    //destructor
-    ~Check(){delete [] Check}
+    operator =(Check &obj);
+    operator <<(Check &obj);
 
 private:
-    float balance;
     Check *chkPtr; //array of checks, capacity is checkBookSize
+    float balance;
     float lastDeposit;
     int numOfChecks;
     int checkBookSize;
-
 };
 
 /***************/
-/***constructors, destructors, overloaded operators*****/
-CheckBook::CheckBook(const CheckBook &obj)
+/***constructors, overloaded operators*****/
+CheckBook::operator =(Check &obj)
 {
-    
+    obj.checkAmount=balance; //change later
+    return ;
 }
-
-/*****************/
-/**other fncs*****/
 void CheckBook::deposit(float amount)
 {
     balance=balance+amount;
     lastDeposit = amount;
-    return balance;
 }
-bool CheckBook::writeCheck(Check c_amount)
+
+
+bool operator <=(Check &obj, float balance)
 {
-    if(((numOfChecks < N) && (allChecks < 10)) && (amount<=balance))
+    if(obj.checkAmount < balance)
     {
-        //update numofchecks and allChecks
-
-
-        //add amount info to check
-        checks[numOfChecks].checkAmount = amount;
-        //ask
-        cout<<"\nmemo?"<<endl; cin>>checks[numOfChecks].checkMemo;
-        //cin.ignore();
-        //getline(cin,checks[numOfChecks].checkMemo);
-
-        //set checknum
-        checks[numOfChecks].checkNum = numOfChecks;
-        //update balance
-        balance = balance - amount;
-
-        numOfChecks++;
-        allChecks++;
         return true;
     }
     else
     {
-        //cout<<"Cannot write check for that amount. Try a lower amount next time."<<endl;
         return false;
     }
 }
-void CheckBook::displayChecks()
+
+
+/*****************/
+/**other fncs*****/
+
+
+bool CheckBook::writeCheck(Check c_amount)
 {
-    for(int i=(numOfChecks-1); i>=0; i--)
+    cout<<"Inside writeCheck function."<<endl;
+    if(c_amount<=balance)
     {
-       //cout<<"Checks in order:";
-       cout<<checks[i].checkAmount<<"   "<<checks[i].checkNum<<"   "<<checks[i].checkMemo<<endl;
+        //check memo
+        string reasons[10] = {"ring", "isopods", "legos", "chocolate", "guitar", "gouache", "birthday", "fine art", "glass tumblers", "cabin"};
+        c_amount.checkMemo = reasons[(rand())%10];
+
+        //init struct members
+        cout<<c_amount.checkMemo<<endl;
+        c_amount.checkNum = numOfChecks;
+        //chkPtr[numOfChecks] = c_amount;
+        numOfChecks++;
+
+        balance = balance - c_amount.checkAmount;
+
+
+        //check if should double checkbook
+        if(numOfChecks>=(checkBookSize/2))
+        {
+            cout<<"Ran out of empty checks. New checkbook has been ordered!"<<endl;
+            checkBookSize *= 2;
+
+        }
+        return true;
+    }
+    else
+    {
+        cout<<"Could not write check."<<endl;
+        return false;
     }
 }
-/*****************/
-void checkTest()
+
+void const CheckBook::displayChecks()
 {
+    cout<<"Checks: ";
+    cout<<numOfChecks<<endl;
+    for(int i=0; i<numOfChecks; i++)
+    {
+        cout<<i;
+        cout<<chkPtr[i].checkAmount;
+
+       //cout<<chkPtr[i].checkAmount<<"   "<<chkPtr[i].checkNum<<"   "<<chkPtr[i].checkMemo<<endl;
+    }
+}
+
+void checkTest(CheckBook &obj, float balance)
+{
+    cout<<"Made it to Check Test."<<endl;
+    Check c_amount;
+    c_amount.checkAmount = 50;
+
+    while(c_amount <= obj.getBalance())
+    {
+        obj.writeCheck(c_amount);
+    }
+    cout<<"done."<<endl;
 
 }
+
 
 /*********************/
 
 int main()
 {
     //initialize a checkbook obj
-    void checkTest();
+    float amt;
+    CheckBook cb1;
+    cout<<"Enter your initial balance."<<endl;
+    cin>>amt;
+    cb1.setBalance(amt);
+
+    checkTest(cb1, amt);
+    cb1.displayChecks();
     return 0;
 }
