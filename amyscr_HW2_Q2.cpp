@@ -26,18 +26,18 @@ struct Check
     string checkMemo;
     float checkAmount;
     bool operator >(const Check &obj);
+    friend ostream& operator <<(ostream &out, Check &phrase)
+    {
+    out<<phrase.checkAmount<<"   "<<phrase.checkMemo<<"   "<<phrase.checkNum<<endl;
+    return out;
+    }
 };
 //returns true if this instance is bigger
 bool Check::operator >(const Check &obj)
 {
-    return checkAmount>obj.checkNum;
+    return checkAmount>obj.checkAmount;
 }
 
-ostream& operator <<(ostream &out, Check &phrase)
-{
-    out<<phrase.checkAmount<<"   "<<phrase.checkMemo<<"   "<<phrase.checkNum<<endl;
-    return out;
-}
 
 /*************************/
 
@@ -48,7 +48,18 @@ public:
     CheckBook(): balance(0), numOfChecks(0), checkBookSize(4){} //initialize pointer
     CheckBook(float initBalance): balance(initBalance), numOfChecks(0), checkBookSize(4){balance=initBalance; chkPtr = new Check[checkBookSize];}
     //copy constructor
-    CheckBook(const CheckBook &obj){balance=obj.balance; lastDeposit=obj.lastDeposit; numOfChecks=obj.numOfChecks; checkBookSize=obj.checkBookSize; chkPtr=obj.chkPtr;}
+    CheckBook(const CheckBook &obj)
+    {
+        balance=obj.balance;
+        lastDeposit=obj.lastDeposit;
+        numOfChecks=obj.numOfChecks;
+        checkBookSize=obj.checkBookSize;
+        chkPtr=new Check[checkBookSize];
+        for(int i=0;i<numOfChecks;i++)
+        {
+            chkPtr[i] = obj.chkPtr[i];//for every new, a new struct obj is created via ptr array
+        }
+    }
     //destructor
     ~CheckBook(){delete[] chkPtr;} //initialize pointer
 
@@ -73,8 +84,11 @@ public:
     operator =(Check &obj);
     operator <<(Check &obj);
 
+    //string of reasons in class to avoid reinitializing
+
 private:
-    Check *chkPtr; //array of checks, capacity is checkBookSize
+    Check *chkPtr; //pointer to array of checks, capacity is checkBookSize
+    Check chkArray[250]; //array
     float balance;
     float lastDeposit;
     int numOfChecks;
@@ -82,11 +96,12 @@ private:
 };
 
 /***************/
-/***constructors, overloaded operators*****/
+
 CheckBook::operator =(Check &obj)
 {
     obj.checkAmount=balance; //change later
 }
+
 void CheckBook::deposit(float amount)
 {
     balance=balance+amount;
@@ -108,35 +123,31 @@ bool operator <=(Check &obj, float balance)
 
 
 /*****************/
-/**other fncs*****/
 
 
 bool CheckBook::writeCheck(Check c_amount)
 {
-    cout<<"Inside writeCheck function."<<endl;
     if(c_amount<=balance)
     {
         //check memo
-        string reasons[10] = {"ring", "isopods", "legos", "chocolate", "guitar", "gouache", "birthday", "fine art", "glass tumblers", "cabin"};
+        string reasons[10] = {"ring", "isopods", "legos", "chocolate", "guitar", "gouache", "birthday", "fine art", "glass tumblers", "cabin rental"};
         c_amount.checkMemo = reasons[(rand())%10];
 
-        //init struct members
+        //check amount
         cout<<c_amount.checkMemo<<endl;
-        c_amount.checkNum = numOfChecks;
-        //chkPtr[numOfChecks] = c_amount;
-        numOfChecks++;
-
         balance = balance - c_amount.checkAmount;
-
+        //checknum
+        c_amount.checkNum = numOfChecks;
+        numOfChecks++;
 
         //check if should double checkbook
         if(numOfChecks>=(checkBookSize/2))
         {
-            cout<<"Ran out of empty checks. New checkbook has been ordered!"<<endl;
             checkBookSize *= 2;
-
+            Check* newArray = new Check[checkBookSize];
+            cout<<"Halfway through checkbook, new checkbook on the way!"<<endl;
+            chkPtr = newArray;
         }
-        return true;
     }
     else
     {
@@ -149,27 +160,22 @@ void const CheckBook::displayChecks()
 {
     cout<<"Checks: ";
     cout<<numOfChecks<<endl;
-    for(int i=0; i<numOfChecks; i++)
+    for(int i=(numOfChecks-1); i>=0; i--) //goes backwards
     {
-        cout<<i;
-        cout<<chkPtr[i].checkAmount;
-
-       //cout<<chkPtr[i].checkAmount<<"   "<<chkPtr[i].checkNum<<"   "<<chkPtr[i].checkMemo<<endl;
+       //cout<<"Checks in order:";
+       cout<<chkArray[i].checkAmount<<"   "<<chkArray[i].checkNum<<"   "<<chkArray[i].checkMemo<<endl;
     }
 }
-
+Check c_amount;
 void checkTest(CheckBook &obj, float balance)
 {
-    cout<<"Made it to Check Test."<<endl;
-    Check c_amount;
+
     c_amount.checkAmount = 50;
 
     while(c_amount <= obj.getBalance())
     {
         obj.writeCheck(c_amount);
     }
-    cout<<"done."<<endl;
-
 }
 
 
@@ -177,7 +183,6 @@ void checkTest(CheckBook &obj, float balance)
 
 int main()
 {
-    //initialize a checkbook obj
     float amt;
     CheckBook cb1;
     cout<<"Enter your initial balance."<<endl;
