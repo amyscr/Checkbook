@@ -7,14 +7,10 @@
 **
 ** Problem: Create checkbook and checkbook test, a way to update members
 
-Accept the following information from the user (keyboard):
-- Hw1, hw2 and hw3 (out of 100)
-- Midterm (out of 100)
-- Final exam (out of 100)
-Calculate the total grade out of 100 based on the following grading scale:
-Hws --> 30% (10% each)
-Midterm --> 30%
-Final Exam --> 40%
+Accept balance from user
+Create checks until balance is exhausted
+Double size of checkbook each time
+Print checks
 *************************************************************************/
 #include <string>
 #include <iostream>
@@ -85,10 +81,11 @@ public:
     operator <<(Check &obj);
 
     //string of reasons in class to avoid reinitializing
+    Check chkArray[250]; //array
 
 private:
     Check *chkPtr; //pointer to array of checks, capacity is checkBookSize
-    Check chkArray[250]; //array
+
     float balance;
     float lastDeposit;
     int numOfChecks;
@@ -129,16 +126,22 @@ bool CheckBook::writeCheck(Check c_amount)
 {
     if(c_amount<=balance)
     {
+
+        numOfChecks++;
+        cout<<"Writing check "<<numOfChecks<<"..."<<endl;
         //check memo
         string reasons[10] = {"ring", "isopods", "legos", "chocolate", "guitar", "gouache", "birthday", "fine art", "glass tumblers", "cabin rental"};
         c_amount.checkMemo = reasons[(rand())%10];
 
         //check amount
-        cout<<c_amount.checkMemo<<endl;
         balance = balance - c_amount.checkAmount;
+
         //checknum
         c_amount.checkNum = numOfChecks;
-        numOfChecks++;
+
+        chkArray[numOfChecks] = c_amount;
+
+
 
         //check if should double checkbook
         if(numOfChecks>=(checkBookSize/2))
@@ -160,7 +163,7 @@ void const CheckBook::displayChecks()
 {
     cout<<"Checks: ";
     cout<<numOfChecks<<endl;
-    for(int i=(numOfChecks-1); i>=0; i--) //goes backwards
+    for(int i=(numOfChecks); i>0; i--) //goes backwards
     {
        //cout<<"Checks in order:";
        cout<<chkArray[i].checkAmount<<"   "<<chkArray[i].checkNum<<"   "<<chkArray[i].checkMemo<<endl;
@@ -169,12 +172,12 @@ void const CheckBook::displayChecks()
 Check c_amount;
 void checkTest(CheckBook &obj, float balance)
 {
-
     c_amount.checkAmount = 50;
-
+    cout<<"Check amount: "<<c_amount.checkAmount<<endl;
     while(c_amount <= obj.getBalance())
     {
         obj.writeCheck(c_amount);
+
     }
 }
 
